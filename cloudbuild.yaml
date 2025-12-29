@@ -37,8 +37,6 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'ANTHROPIC_API_KEY=${_ANTHROPIC_API_KEY}'
       - '--memory'
       - '1Gi'
       - '--cpu'
@@ -55,7 +53,6 @@ steps:
 # Substitution variables (set these in Cloud Build trigger or command line)
 substitutions:
   _REGION: 'us-central1'
-  _ANTHROPIC_API_KEY: ''
 
 # Build options
 options:
