@@ -46,6 +46,18 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
             app.state.config = Config.from_env()
         app.state.counsel = AICounsel(app.state.config)
 
+    @app.get("/health")
+    async def health_check():
+        """Health check endpoint for Cloud Run."""
+        return {"status": "healthy", "service": "ai-counsel"}
+
+    @app.get("/ready")
+    async def readiness_check():
+        """Readiness check - verifies counsel is initialized."""
+        if app.state.counsel is None:
+            return {"status": "not_ready"}, 503
+        return {"status": "ready"}
+
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
         """Render the main chat interface."""
