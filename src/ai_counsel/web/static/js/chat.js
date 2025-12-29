@@ -64,19 +64,22 @@ function connectWebSocket() {
 function handleMessage(data) {
     switch (data.type) {
         case 'status':
-            showStatus(data.content, true);
+            updateLoadingText(data.content);
             break;
 
         case 'analysis':
             removeStatus();
             showAnalysis(data.content, data.agents);
+            showLoadingIndicator('Consulting specialist agents...');
             break;
 
         case 'agent_response':
+            removeStatus();
             showAgentResponse(data.agent, data.content);
             break;
 
         case 'synthesis':
+            removeStatus();
             showSynthesis(data.content);
             break;
 
@@ -97,11 +100,23 @@ function handleMessage(data) {
     scrollToBottom();
 }
 
+// Update loading text
+function updateLoadingText(text) {
+    const loadingText = document.querySelector('.loading-text');
+    if (loadingText) {
+        loadingText.textContent = text;
+    }
+}
+
 // Send message
 function sendMessage() {
     const task = messageInput.value.trim();
 
     if (!task || !isConnected || isProcessing) {
+        // Show connection error if not connected
+        if (!isConnected) {
+            showError('Not connected to server. Please refresh the page.');
+        }
         return;
     }
 
@@ -113,6 +128,9 @@ function sendMessage() {
 
     // Show user message
     showUserMessage(task);
+
+    // Show immediate loading feedback
+    showLoadingIndicator();
 
     // Send to server
     ws.send(JSON.stringify({
@@ -126,6 +144,22 @@ function sendMessage() {
     isProcessing = true;
     updateSendButton();
 
+    scrollToBottom();
+}
+
+// Show loading indicator immediately
+function showLoadingIndicator(text = 'Analyzing your request...') {
+    removeStatus();
+    const div = document.createElement('div');
+    div.className = 'message message-loading';
+    div.id = 'statusMessage';
+    div.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">${escapeHtml(text)}</div>
+        </div>
+    `;
+    chatMessages.appendChild(div);
     scrollToBottom();
 }
 
