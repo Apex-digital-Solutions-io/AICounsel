@@ -149,6 +149,52 @@ def interactive() -> None:
     _interactive_mode(verbose=False)
 
 
+@app.command()
+def gui(
+    host: str = typer.Option(
+        "127.0.0.1",
+        "--host",
+        "-h",
+        help="Host to bind the server to",
+    ),
+    port: int = typer.Option(
+        8000,
+        "--port",
+        "-p",
+        help="Port to bind the server to",
+    ),
+    no_browser: bool = typer.Option(
+        False,
+        "--no-browser",
+        help="Don't open browser automatically",
+    ),
+) -> None:
+    """Launch the web-based GUI for AI Counsel."""
+    import webbrowser
+    from threading import Timer
+
+    from .web import run_server
+
+    console.print("[bold blue]Starting AI Counsel GUI...[/bold blue]")
+    console.print(f"[dim]Server running at http://{host}:{port}[/dim]")
+    console.print("[dim]Press Ctrl+C to stop[/dim]\n")
+
+    # Open browser after a short delay
+    if not no_browser:
+        def open_browser():
+            webbrowser.open(f"http://{host}:{port}")
+        Timer(1.5, open_browser).start()
+
+    try:
+        config = Config.from_env()
+        run_server(host=host, port=port, config=config)
+    except ValueError as e:
+        console.print(f"[bold red]Configuration Error:[/bold red] {e}")
+        raise typer.Exit(1)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Shutting down...[/dim]")
+
+
 def _interactive_mode(verbose: bool = False) -> None:
     """Run the interactive counsel session."""
     display = CounselDisplay(verbose=verbose)

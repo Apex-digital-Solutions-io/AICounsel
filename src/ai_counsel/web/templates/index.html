@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Counsel</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/typescript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/sql.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/go.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/rust.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="10" cy="12" r="2" fill="currentColor"/>
+                        <circle cx="22" cy="12" r="2" fill="currentColor"/>
+                        <circle cx="16" cy="20" r="2" fill="currentColor"/>
+                        <line x1="11" y1="13" x2="15" y2="19" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="21" y1="13" x2="17" y2="19" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                    <h1>AI Counsel</h1>
+                </div>
+                <p class="tagline">Your council of AI experts</p>
+            </div>
+
+            <div class="agents-section">
+                <h3>Select Agents</h3>
+                <p class="agents-hint">Choose specific agents or let the orchestrator decide</p>
+                <div class="agents-list">
+                    {% for agent in agents %}
+                    <label class="agent-checkbox" data-agent="{{ agent.role }}">
+                        <input type="checkbox" value="{{ agent.role }}">
+                        <span class="agent-icon agent-{{ agent.role }}"></span>
+                        <span class="agent-name">{{ agent.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <button class="btn-clear-agents" onclick="clearAgentSelection()">Clear Selection</button>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn-new-chat" onclick="clearChat()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New Chat
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <h2>Welcome to AI Counsel</h2>
+                    <p>I'm your council of specialized AI agents. Ask me anything about building applications, and I'll consult the relevant experts.</p>
+                    <div class="example-prompts">
+                        <p>Try asking:</p>
+                        <button class="example-btn" onclick="useExample(this)">Design a REST API for a task management app</button>
+                        <button class="example-btn" onclick="useExample(this)">Review this authentication flow for security issues</button>
+                        <button class="example-btn" onclick="useExample(this)">What's the best way to structure a Python microservice?</button>
+                        <button class="example-btn" onclick="useExample(this)">Create a testing strategy for a payment system</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        placeholder="Ask the AI Counsel..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button class="btn-send" id="sendBtn" onclick="sendMessage()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

@@ -78,6 +78,27 @@ ANTHROPIC_API_KEY=your-api-key-here
 
 ## Usage
 
+### Web GUI (Recommended)
+
+Launch the web-based chat interface:
+
+```bash
+# Start the GUI (opens browser automatically)
+ai-counsel gui
+
+# Specify host and port
+ai-counsel gui --host 0.0.0.0 --port 8080
+
+# Don't open browser automatically
+ai-counsel gui --no-browser
+```
+
+The GUI provides:
+- Modern chat interface with real-time responses
+- Agent selection sidebar
+- Markdown rendering with syntax highlighting
+- Example prompts to get started
+
 ### Command Line Interface
 
 ```bash
@@ -93,7 +114,7 @@ ai-counsel consult "How can I improve this code?" --file src/main.py
 # Include project context
 ai-counsel consult "Add caching to this service" --project ./my-project
 
-# Interactive mode
+# Interactive mode (terminal-based)
 ai-counsel interactive
 
 # List available agents
