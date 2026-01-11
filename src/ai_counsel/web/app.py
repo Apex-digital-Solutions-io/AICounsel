@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -14,6 +15,10 @@ from starlette.requests import Request
 from ..core.base_agent import AgentRole
 from ..core.config import Config
 from ..counsel import AICounsel
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Paths
 WEB_DIR = Path(__file__).parent
@@ -82,15 +87,18 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
         """WebSocket endpoint for chat interactions."""
         await websocket.accept()
         counsel: AICounsel = app.state.counsel
+        logger.info("WebSocket connection established")
 
         try:
             while True:
                 # Receive message from client
                 data = await websocket.receive_text()
+                logger.info(f"Received message: {data[:100]}...")
                 message = json.loads(data)
 
                 task = message.get("task", "")
                 selected_agents = message.get("agents", [])
+                logger.info(f"Task: {task[:50]}... | Agents: {selected_agents}")
 
                 if not task:
                     await websocket.send_json({
@@ -104,6 +112,7 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
                     "type": "status",
                     "content": "Analyzing your request...",
                 })
+                logger.info("Sent status acknowledgment")
 
                 # Parse agent selection
                 agent_roles = None
@@ -117,13 +126,16 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
 
                 try:
                     # Get analysis first
+                    logger.info("Starting task analysis...")
                     analysis = await counsel.orchestrator.analyze_task(task)
+                    logger.info(f"Analysis complete: {analysis}")
 
                     agents_to_consult = agent_roles or [
                         AgentRole(role.lower())
                         for role in analysis.get("agents_needed", ["architect", "developer"])
                         if role.lower() in [r.value for r in AgentRole]
                     ]
+                    logger.info(f"Agents to consult: {agents_to_consult}")
 
                     await websocket.send_json({
                         "type": "analysis",
@@ -132,13 +144,16 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
                     })
 
                     # Consult the counsel
+                    logger.info("Starting consultation...")
                     session = await counsel.consult(
                         task=task,
                         agents=agent_roles,
                     )
+                    logger.info(f"Consultation complete. Got {len(session.responses)} responses")
 
                     # Send each agent's response
                     for response in session.responses:
+                        logger.info(f"Sending response from {response.agent_role.value}")
                         await websocket.send_json({
                             "type": "agent_response",
                             "agent": response.agent_role.value,
@@ -149,6 +164,7 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
 
                     # Send synthesis if available
                     if session.synthesis:
+                        logger.info("Sending synthesis")
                         await websocket.send_json({
                             "type": "synthesis",
                             "content": session.synthesis,
@@ -159,16 +175,19 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
                         "type": "complete",
                         "content": "Consultation complete.",
                     })
+                    logger.info("Consultation flow complete")
 
                 except Exception as e:
+                    logger.error(f"Error during consultation: {str(e)}", exc_info=True)
                     await websocket.send_json({
                         "type": "error",
                         "content": f"Error during consultation: {str(e)}",
                     })
 
         except WebSocketDisconnect:
-            pass
+            logger.info("WebSocket disconnected")
         except Exception as e:
+            logger.error(f"WebSocket error: {str(e)}", exc_info=True)
             try:
                 await websocket.send_json({
                     "type": "error",
